@@ -81,7 +81,11 @@ class sqlite {
 
         $this->_sql = "UPDATE $tableName SET $clausule";
 
-        $stmt = $this->_buildQuery();
+        if(!empty($this->_where)) {
+            $stmt = $this->_buildQuery();
+        } else {
+            trigger_error('You must use the "where" method to call "update". ', E_USER_ERROR);
+        }
 
         foreach($updateData as $key => $value) {
             $this->_params[":$key"] = $value;
@@ -134,7 +138,7 @@ class sqlite {
     protected function _prepareQuery() {
         
         if(!$stmt = $this->_db->prepare($this->_sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY))) {
-            trigger_error('Problema al preparar la consulta: '. $this->_sql, E_USER_ERROR); 
+            trigger_error('Problem preparing query: '. $this->_sql, E_USER_ERROR); 
         }
         return $stmt;
     }
