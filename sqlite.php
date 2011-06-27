@@ -50,7 +50,6 @@ class sqlite {
         $clausule = "( $keys_clausule ) VALUES ( :$binds_clausule )";
 
         $this->_query = "INSERT into $tableName $clausule";
-        //$stmt = $this->_prepareQuery();
         
         foreach($keys as $row) {
             $new_keys[] = ":$row";
@@ -67,35 +66,30 @@ class sqlite {
 
     public function update($tableName, $updateData) {
 
-        echo '<pre>';
-        print_r($updateData);
-        echo '</pre>';
-
         $keys   = array_keys($updateData);
         $values = array_values($updateData);
 
+        $counter = 0;
         foreach ($keys as $row) {
-            $binds[] = ":$row";
+            if($counter == 0) {
+                $clausule .= "$row = :$row";
+            } else {
+                $clausule .= ", $row = :$row";
+            }
+            $counter++;
         }
 
-        echo '<pre>';
-        print_r($data);
-        echo '</pre>';
-        
-        /*foreach($data as $key => $value) {
-            $clausule .= "$key*/
         $this->_sql = "UPDATE $tableName SET $clausule";
 
         $stmt = $this->_buildQuery();
 
-        echo $this->_sql;
-
-        //$stmt->execute($this->_params);
-
-        /*$stmt = $this->_db->prepare($this->_query);
+        foreach($updateData as $key => $value) {
+            $this->_params[":$key"] = $value;
+        }       
+    
         if($stmt->execute($this->_params)) {
             return true;
-        }*/
+        }
 
     }
 
@@ -114,9 +108,9 @@ class sqlite {
                 }
                 $counter++;
                 if($row[operator] == 'LIKE') {
-                    $this->_params[$row[key]] = '%'.$row[value].'%';
+                    $this->_params[":$row[key]"] = '%'.$row[value].'%';
                 } else {
-                    $this->_params[$row[key]] = $row[value]; 
+                    $this->_params[":$row[key]"] = $row[value]; 
                 }
             }
         }
@@ -130,7 +124,6 @@ class sqlite {
         } elseif ($numRows && $startingNum) {
             $this->_sql .= " LIMIT $startingNum, $numRows";
         }
-        //echo $this->_sql;
 
         $stmt = $this->_prepareQuery();
 
